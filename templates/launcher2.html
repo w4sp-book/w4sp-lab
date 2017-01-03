@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>W4SP Lab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="static/js/jquery-1.11.3.min.js"></script>
+    <link href="static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="static/visjs/vis.js"></script>
+    <link href="static/visjs/vis.css" rel="stylesheet" type="text/css"/>
+
+   <style type="text/css">
+        #mynetwork {
+           
+            height: 500px;
+        }
+
+
+    </style>  
+
+  </head>
+  <body style="background-color: #999999">
+
+    <div class="container-fluid">
+      <h1>Welcome to the Labs!</h2>
+      <br>
+
+
+    <!-- Modal Start here-->
+<div class="modal fade bs-example-modal-lg" id="shutdownmodal" tabindex="-1"
+    role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <span>
+                    </span>Shutting Down Lab Environment....
+                 </h4>
+            </div>
+            <div class="modal-body">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-info
+                    progress-bar-striped active"
+                    style="width: 100%">
+                    </div>
+                </div>
+             <p>*Note this process can take up to a minute to complete</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal ends Here -->
+
+
+
+
+    <!-- Modal Start here-->
+<div class="modal fade bs-example-modal-lg" id="setupmodal" tabindex="-1"
+    role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <span>
+                    </span>Setting Up Lab Environment....
+                 </h4>
+            </div>
+            <div class="modal-body">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-info
+                    progress-bar-striped active"
+                    style="width: 100%">
+                    </div>
+                </div>
+             <p>*Note this process can take up to a minute to complete</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal ends Here -->
+
+
+    <div class="row">
+
+    <div class="col-sm-4 col-md-4 col-lg-4">    
+    <p>The Setup and Shutdown buttons below can be
+       used to start and stop the lab environment (respectively)</p>
+    </div>
+
+    <div class="col-sm-4 col-md-4 col-lg-4"> 
+   <p>The network diagram below is dynamically generated and represents the current setup of the lab
+       environment. It will be automatically refreshed after any changes. You can double click any node to launch both
+       Wireshark and a terminal within the selected nodes network namespace</p>
+    </div>
+
+    <div class="col-sm-4 col-md-4 col-lg-4">
+    <p>The numbered Lab buttons on the right will reconfigure the lab environment as appropriate</p>
+    </div>
+
+    
+    </div>
+
+
+  </br>
+  <div class="row">
+    <div class="col-sm-1 col-md-1 col-lg-1">
+       
+       <button id="setup" type="submit" class="btn btn-danger">SETUP</button>
+       
+       </br>
+       
+       <button id="shutdown" type="submit" class="btn btn-danger">SHUTDOWN</button>
+       
+       </br>
+    </div>
+
+    <div id="mynetwork" class="col-sm-10 col-md-10 col-lg-10">
+    </div>
+
+
+    <div class="col-sm-1 col-md-1 col-lg-1">
+
+    
+        {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
+       <button id="{{ lab }}" type="submit" class="btn btn-danger">{{ 'start ' ~ lab }}</button>
+ 
+        {% endfor %}
+        
+
+        <!--
+        <button id="mitm" type="submit" class="btn btn-danger">Setup MiTM</button>
+        <button id="ips" type="submit" class="btn btn-danger">Enable IPS</button>
+        <button id="jenkins" type="submit" class="btn btn-danger">Enable Jenkins</button>
+        <button id="elk" type="submit" class="btn btn-danger">Enable ELK</button>
+        <button id="wireless" type="submit" class="btn btn-danger">Enable Wireless</button>
+        -->
+
+    </div>
+
+
+    </div>
+
+
+    <script>
+
+    {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}    
+        var {{ 'is_' ~ lab  }} = false;
+    {% endfor %}
+
+    var network;
+    var nodes = new vis.DataSet();
+    var edges = new vis.DataSet();
+
+
+    //disable all of the buttons to start
+    {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
+        $("{{'button#' ~ lab}}").prop('disabled', true);
+ 
+    {% endfor %}
+
+
+    $.getJSON('getnet', redrawAll);
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+
+        var options = {
+        interaction: {hover:true},
+        nodes: {
+            shape: 'circle',
+            size: 30,
+            font: {
+                size: 17
+            },
+            borderWidth: 2,
+            shadow:true
+        },
+        edges: {
+            width: 2,
+            shadow:true
+        }
+    };
+
+
+    var network = new vis.Network(container, data, options);
+
+    network.on("doubleClick", function (params) {
+               $.ajax({
+                   type: "POST",
+                   url: "runshark",
+                   data: { "pid" : params["nodes"]}
+               });
+            });
+       
+
+
+    function redrawAll(data) {
+
+        console.log(data)
+
+        nodes.clear();
+        edges.clear();
+
+        nodes.add(data.nodes);
+        edges.add(data.edges);
+
+        var is_mitm = false;
+        var is_vic2 = false;
+
+        //make this based on a call to check if suricata is running
+        $.ajax({
+            type: "GET",
+            url: "is_ips",
+            async: false,
+            success: function(data) {
+                console.log("is_ips returned success!");
+                is_ips = true;
+            },
+            error: function() {
+                console.log("is_ips returned error!");
+                is_ips = false;   
+            }
+        });
+
+
+
+
+
+        var ids = nodes.getIds();
+        console.log(ids);        
+
+        var items = nodes.get({
+            fields: ['label'],
+            });
+
+        //go through to see what is running
+        console.log(items);
+        $.each(items, function(index, value) {
+            console.log(value.label);
+            if (value.label == "vic3") {
+                is_mitm = true;
+            } else if (value.label == "vic2") {
+                is_vic2 = true;
+            } else if (value.label == "elk") {
+                is_elk = true;
+            } else if (value.label == "wifi") {
+                is_wifi = true;
+            } else if (value.label == "sploit") {
+                is_sploit = true;
+            };
+
+        });
+
+
+        console.log(is_ips);
+        {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
+            if (nodes.length > 2 && !({{ 'is_' ~ lab }})) {
+                $("{{'button#' ~ lab}}").prop('disabled', false); 
+            } else {
+                $("{{'button#' ~ lab}}").prop('disabled', true);
+            };
+          
+ 
+        {% endfor %}
+
+
+
+        network.fit();
+        $('#setupmodal').modal('hide');
+        $('#shutdownmodal').modal('hide');
+
+    }
+
+
+       $(function() {
+           $('button#setup').click(function(){
+
+               $.get('setup', function(data) {
+           
+                   $('button#setup').text(data);
+
+               });
+
+               $('#setupmodal').modal('show');
+               $.getJSON('getnet', redrawAll);
+
+            });     
+        });
+
+
+
+       $(function() {
+           $("button#mitm").click(function(){          
+               $.ajax({
+                   type: "GET",
+                   url: "mitm",
+               });
+ 
+               $.getJSON('getnet', redrawAll);
+
+               $('button#mitm').prop('disabled', true);
+
+            });
+        });
+
+
+       $(function() {
+           $("button#vic2").click(function(){          
+               $.ajax({
+                   type: "GET",
+                   url: "add_vic2",
+               });
+ 
+               $.getJSON('getnet', redrawAll);
+
+               $('button#vic2').prop('disabled', true);
+
+            });
+        });
+
+
+
+
+       $(function() {
+           $("button#sploit").click(function(){          
+               $.ajax({
+                   type: "GET",
+                   url: "sploit",
+               });
+ 
+               $.getJSON('getnet', redrawAll);
+
+               $('button#sploit').prop('disabled', true);
+
+            });
+        });
+
+
+
+
+       $(function() {
+           $("button#ips").click(function(){          
+               $.ajax({
+                   type: "GET",
+                   url: "ips",
+               });
+ 
+               $.getJSON('getnet', redrawAll);
+
+               $('button#ips').prop('disabled', true);
+
+            });
+        });
+
+
+
+       $(function() {
+           $("button#wifi").click(function(){          
+               $.ajax({
+                   type: "GET",
+                   url: "wifi",
+               });
+ 
+               $.getJSON('getnet', redrawAll);
+
+               $('button#wifi').prop('disabled', true);
+
+            });
+        });
+
+
+
+
+
+       $(function() {
+           $("button#shutdown").click(function(){          
+               $.ajax({
+                   type: "GET",
+                   url: "shutdown",
+               });
+
+               $('#shutdownmodal').modal('show');
+               $.getJSON('getnet', redrawAll);
+               $('button#setup').text('SETUP');
+
+            });
+        });
+    </script>
+
+    </div>
+  </body>
+</html>
