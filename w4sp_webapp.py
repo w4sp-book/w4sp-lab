@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import pwd
 import time
 
@@ -92,7 +93,7 @@ def launcher():
 @app.route('/getnet')
 def getnet():
     """This returns the nodes and edges used by visjs, node = { 'id': ns.pid, 'label': ns.name, 'title': ip_address }
-        edges = { 'from': ns_connected_from, 'to': ns_connected_to }""" 
+        edges = { 'from': ns_connected_from, 'to': ns_connected_to }"""
 
     data = {}
     data['nodes'] = []
@@ -102,7 +103,7 @@ def getnet():
         tmp = {}
         tmp['id'] = ns.pid
         tmp['label'] = ns.name
-    
+
         if ns.name == 'inet':
             tmp['color'] = 'rgb(0,255,0)'
 
@@ -111,7 +112,7 @@ def getnet():
             # { 'nic' : ip }
             tmp_popup += '%s : %s <br>' % ips.popitem()
 
-        tmp['title'] = tmp_popup 
+        tmp['title'] = tmp_popup
         data['nodes'].append(tmp)
 
     tmp_popup = ''
@@ -162,7 +163,7 @@ def setup():
         w4sp.setup_network2('eth0')
         time.sleep(3)
         return 'REFRESH'
- 
+
     except:
         print(traceback.format_exc())
         return 'ERROR'
@@ -186,14 +187,14 @@ def mitm():
             w4sp.r('ip link set vic3 up')
 
     return 'ok'
-    
+
 
 
 @app.route('/add_vic2')
 def add_vic():
     """this connects up another victim to the '1st' net so we can do things like dhcp/DNS spoofing"""
 
-    
+
     if w4sp.c('vic2'):
         return 'ERROR'
 
@@ -218,7 +219,7 @@ def is_ips():
 @app.route('/ips')
 def ips():
     """this starts suricata if it isn't running"""
-  
+
     if psef('suricata'):
         return 'error',404
 
@@ -263,7 +264,7 @@ def elk():
     #if elk already exists, bail
     if w4sp.c('elk'):
         return 'error',404
-    
+
     #other create and connect up elk
     NSROOT.register_ns('elk', 'w4sp/labs:elk')
     #connect elk container to sw2 container
@@ -274,7 +275,7 @@ def elk():
 @app.route('/wifi')
 def wifi():
     """this sets up and configures the wireless docker
-        we are going to explicitly ignore the iw help and 
+        we are going to explicitly ignore the iw help and
         screenscrape the output to get our interface names
         this function is going to make a lot of assumptions
         thar be dragons"""
@@ -296,7 +297,7 @@ def wifi():
 
     #our regex to find phy%d
     match = re.compile('phy\d')
-  
+
     #get iw output
     iwo = subprocess.check_output(['iw', 'list'])
 
@@ -313,7 +314,7 @@ def wifi():
 
     if not phy:
         return 'didn''t find a valid phy, please check wifi device connection', 500
-            
+
     #we get here we should have a valid phy name
     #we are going to spin up the wireless container
     NSROOT.register_ns('wifi', 'w4sp/labs:wireless')
@@ -322,7 +323,7 @@ def wifi():
 
     #no we need to move our wifi nic into the container
     cmd = 'iw phy %s set netns %s' % (phy, w4sp.c('wifi').pid)
- 
+
     try:
         subprocess.call(cmd.split(' '))
         #ugh, delaying so setup_wifi.py can catch the new interface :/
@@ -338,7 +339,7 @@ def wifi():
 @app.route('/wpa2')
 def wpa2():
     """this sets up and configures the wireless docker
-        we are going to explicitly ignore the iw help and 
+        we are going to explicitly ignore the iw help and
         screenscrape the output to get our interface names
         this function is going to make a lot of assumptions
         thar be dragons"""
@@ -429,7 +430,7 @@ if __name__ == '__main__':
 
     #check to see if we logged in as w4sp-lab
     if os.getlogin() != 'w4sp-lab':
-        print('[*] Please login as w4sp-lab and run script sudo')
+        print('[*] Please login as w4sp-lab and run script with sudo')
         sys.exit(-1)
 
 
@@ -450,14 +451,32 @@ if __name__ == '__main__':
         elif e.errno == os.errno.ENOENT:
             # handle file not found error, lets install docker
             subprocess.call(['apt-get', 'update'])
-            subprocess.call(['apt-get', 'install', '-y', 'docker.io', 'bridge-utils', 'debootstrap'])
+            subprocess.call(['apt-get', 'install', '-y',
+                            'bridge-utils', 'debootstrap',
+                            'apt-transport-https', 'ca-certificates',
+                            'software-properties-common'])
+
+            #adding the docker gpg key and repo, need to make this check if already
+            #configured
+            subprocess.call(['wget', 'https://yum.dockerproject.org/gpg',
+                            '-O', 'docker.gpg'])
+
+            subprocess.call(['apt-key', 'add', 'docker.gpg'])
+
+            #add the stretch repo, need to figure out how to map kali versions
+            #to debian versions
+            with open('/etc/apt/sources.list', 'a') as f:
+                f.write('\ndeb https://apt.dockerproject.org/repo/ debian-stretch main')
+
+            subprocess.call(['apt-get', 'update'])
+            subprocess.call(['apt-get', '-y', 'install', 'docker-engine'])
             subprocess.call(['service', 'docker', 'start'])
             images = subprocess.check_output(['docker', 'images']).split('\n')
-            
+
         else:
             # Something else went wrong
             raise
-    
+
 
 
     try:
@@ -484,12 +503,8 @@ if __name__ == '__main__':
     app.config['DEBUG'] = args.debug
     p = Process(target=app.run)
     p.start()
-    
+
     time.sleep(3)
-    print('[*] Lab Launched, Firing Up Firefox')
+    print('[*] Lab Launched, Starting Browser')
     print('[*] Do not close this terminal. Closing Terminal will terminate lab.')
     subprocess.call(['su', '-', 'w4sp-lab', '-c', 'firefox 127.0.0.1:5000'])
-
-
-
-
