@@ -11,12 +11,12 @@
 
    <style type="text/css">
         #mynetwork {
-           
+
             height: 500px;
         }
 
 
-    </style>  
+    </style>
 
   </head>
   <body style="background-color: #999999">
@@ -82,12 +82,12 @@
 
     <div class="row">
 
-    <div class="col-sm-4 col-md-4 col-lg-4">    
+    <div class="col-sm-4 col-md-4 col-lg-4">
     <p>The Setup and Shutdown buttons below can be
        used to start and stop the lab environment (respectively)</p>
     </div>
 
-    <div class="col-sm-4 col-md-4 col-lg-4"> 
+    <div class="col-sm-4 col-md-4 col-lg-4">
    <p>The network diagram below is dynamically generated and represents the current setup of the lab
        environment. It will be automatically refreshed after any changes. You can double click any node to launch both
        Wireshark and a terminal within the selected nodes network namespace</p>
@@ -97,20 +97,20 @@
     <p>The numbered Lab buttons on the right will reconfigure the lab environment as appropriate</p>
     </div>
 
-    
+
     </div>
 
 
   </br>
   <div class="row">
     <div class="col-sm-1 col-md-1 col-lg-1">
-       
+
        <button id="setup" type="submit" class="btn btn-danger">SETUP</button>
-       
+
        </br>
-       
+
        <button id="shutdown" type="submit" class="btn btn-danger">SHUTDOWN</button>
-       
+
        </br>
     </div>
 
@@ -120,12 +120,12 @@
 
     <div class="col-sm-1 col-md-1 col-lg-1">
 
-    
-        {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
+        <!-- removed wifi and elk buttons -->
+        {% for lab in ('vic2', 'mitm', 'ips', 'sploit') %}
        <button id="{{ lab }}" type="submit" class="btn btn-danger">{{ 'start ' ~ lab }}</button>
- 
+
         {% endfor %}
-        
+
 
         <!--
         <button id="mitm" type="submit" class="btn btn-danger">Setup MiTM</button>
@@ -143,7 +143,7 @@
 
     <script>
 
-    {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}    
+    {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
         var {{ 'is_' ~ lab  }} = false;
     {% endfor %}
 
@@ -155,7 +155,7 @@
     //disable all of the buttons to start
     {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
         $("{{'button#' ~ lab}}").prop('disabled', true);
- 
+
     {% endfor %}
 
 
@@ -195,7 +195,7 @@
                    data: { "pid" : params["nodes"]}
                });
             });
-       
+
 
 
     function redrawAll(data) {
@@ -222,7 +222,7 @@
             },
             error: function() {
                 console.log("is_ips returned error!");
-                is_ips = false;   
+                is_ips = false;
             }
         });
 
@@ -231,7 +231,7 @@
 
 
         var ids = nodes.getIds();
-        console.log(ids);        
+        console.log(ids);
 
         var items = nodes.get({
             fields: ['label'],
@@ -259,12 +259,12 @@
         console.log(is_ips);
         {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
             if (nodes.length > 2 && !({{ 'is_' ~ lab }})) {
-                $("{{'button#' ~ lab}}").prop('disabled', false); 
+                $("{{'button#' ~ lab}}").prop('disabled', false);
             } else {
                 $("{{'button#' ~ lab}}").prop('disabled', true);
             };
-          
- 
+
+
         {% endfor %}
 
 
@@ -280,7 +280,7 @@
            $('button#setup').click(function(){
 
                $.get('setup', function(data) {
-           
+
                    $('button#setup').text(data);
 
                });
@@ -288,18 +288,18 @@
                $('#setupmodal').modal('show');
                $.getJSON('getnet', redrawAll);
 
-            });     
+            });
         });
 
 
 
        $(function() {
-           $("button#mitm").click(function(){          
+           $("button#mitm").click(function(){
                $.ajax({
                    type: "GET",
                    url: "mitm",
                });
- 
+
                $.getJSON('getnet', redrawAll);
 
                $('button#mitm').prop('disabled', true);
@@ -309,12 +309,12 @@
 
 
        $(function() {
-           $("button#vic2").click(function(){          
+           $("button#vic2").click(function(){
                $.ajax({
                    type: "GET",
                    url: "add_vic2",
                });
- 
+
                $.getJSON('getnet', redrawAll);
 
                $('button#vic2').prop('disabled', true);
@@ -326,12 +326,12 @@
 
 
        $(function() {
-           $("button#sploit").click(function(){          
+           $("button#sploit").click(function(){
                $.ajax({
                    type: "GET",
                    url: "sploit",
                });
- 
+
                $.getJSON('getnet', redrawAll);
 
                $('button#sploit').prop('disabled', true);
@@ -343,12 +343,12 @@
 
 
        $(function() {
-           $("button#ips").click(function(){          
+           $("button#ips").click(function(){
                $.ajax({
                    type: "GET",
                    url: "ips",
                });
- 
+
                $.getJSON('getnet', redrawAll);
 
                $('button#ips').prop('disabled', true);
@@ -359,12 +359,12 @@
 
 
        $(function() {
-           $("button#wifi").click(function(){          
+           $("button#wifi").click(function(){
                $.ajax({
                    type: "GET",
                    url: "wifi",
                });
- 
+
                $.getJSON('getnet', redrawAll);
 
                $('button#wifi').prop('disabled', true);
@@ -377,7 +377,7 @@
 
 
        $(function() {
-           $("button#shutdown").click(function(){          
+           $("button#shutdown").click(function(){
                $.ajax({
                    type: "GET",
                    url: "shutdown",
