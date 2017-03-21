@@ -452,21 +452,24 @@ if __name__ == '__main__':
             # handle file not found error, lets install docker
             subprocess.call(['apt-get', 'update'])
             subprocess.call(['apt-get', 'install', '-y',
-                            'bridge-utils', 'debootstrap',
+                            'bridge-utils',
                             'apt-transport-https', 'ca-certificates',
                             'software-properties-common'])
 
-            #adding the docker gpg key and repo, need to make this check if already
-            #configured
-            subprocess.call(['wget', 'https://yum.dockerproject.org/gpg',
-                            '-O', 'docker.gpg'])
+            # check if we already configured docker repos
+            with open('/etc/apt/sources.list', 'ra+') as f:
+                if 'docker' not in f.read():
 
-            subprocess.call(['apt-key', 'add', 'docker.gpg'])
+                    #adding the docker gpg key and repo
+                    subprocess.call(['wget', 'https://yum.dockerproject.org/gpg',
+                                    '-O', 'docker.gpg'])
 
-            #add the stretch repo, need to figure out how to map kali versions
-            #to debian versions
-            with open('/etc/apt/sources.list', 'a') as f:
-                f.write('\ndeb https://apt.dockerproject.org/repo/ debian-stretch main')
+                    subprocess.call(['apt-key', 'add', 'docker.gpg'])
+
+                    #add the stretch repo, need to figure out how to map kali versions
+                    #to debian versions
+
+                    f.write('\ndeb https://apt.dockerproject.org/repo/ debian-stretch main\n')
 
             subprocess.call(['apt-get', 'update'])
             subprocess.call(['apt-get', '-y', 'install', 'docker-engine'])
