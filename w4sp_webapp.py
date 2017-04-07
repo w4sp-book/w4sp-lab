@@ -424,7 +424,7 @@ if __name__ == '__main__':
         pwd.getpwnam('w4sp-lab')
     except KeyError:
         print('[*] w4sp-lab user non-existant, creating')
-        w4sp.utils.r('useradd -m w4sp-lab -s /bin/bash -G sudo,wireshark -U')
+        w4sp.utils.r('useradd -m w4sp-lab -s /bin/bash -G sudo -U')
         print("[*] Please run: 'passwd w4sp-lab' to set your password, then login as w4sp-lab and rerun lab")
         sys.exit(-1)
 
