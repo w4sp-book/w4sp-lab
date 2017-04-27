@@ -502,6 +502,20 @@ if __name__ == '__main__':
         #just a placeholder
         raise
 
+    #adding logic to handle writing daemon.json so we can disable docker iptables rules
+    daemon_f = '/etc/docker/daemon.json'
+    if not os.path.isfile(daemon_f):
+        with open(daemon_f, 'w+') as f:
+            f.write('{ "iptables": false }')
+
+    subprocess.call(['iptables', '-P', 'INPUT', 'ACCEPT'])
+    subprocess.call(['iptables', '-P', 'FORWARD', 'ACCEPT'])
+    subprocess.call(['iptables', '-P', 'OUTPUT', 'ACCEPT'])
+    subprocess.call(['iptables', '-t', 'nat', '-F'])
+    subprocess.call(['iptables', '-t', 'mangle', '-F'])
+    subprocess.call(['iptables', '-F'])
+    subprocess.call(['iptables', '-X'])
+
 
     w4sp.docker_clean()
 
