@@ -507,7 +507,7 @@ if __name__ == '__main__':
     daemon_f = '/etc/docker/daemon.json'
     if not os.path.isfile(daemon_f):
         with open(daemon_f, 'w+') as f:
-            f.write('{ "iptables": true, "default-ulimit": "nofile=90000:90000" }')
+            f.write('{ "iptables": true }')
 
     subprocess.call(['iptables', '-P', 'INPUT', 'ACCEPT'])
     subprocess.call(['iptables', '-P', 'FORWARD', 'ACCEPT'])
