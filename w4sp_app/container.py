@@ -222,7 +222,7 @@ class container(root_ns):
         #start the container and record the container id sleeping randomly to try and improve performance at start
         #time.sleep(random.uniform(1,3))
         self.id = r('docker run -id --privileged --name $name --hostname $name --net=none $image').strip()
-        self.pid = r("docker inspect -f '{{.State.Pid}}' $self.id").strip().strip("'")
+        self.pid = r("docker inspect -f '{{.State.Pid}}' $self.id").strip().strip(b"'")
 
         self.proc_path = '/proc/%s/ns/' % self.pid
         self.mnt_fd = open(self.proc_path + 'mnt', 'ro')

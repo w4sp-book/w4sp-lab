@@ -450,7 +450,7 @@ if __name__ == '__main__':
         #if e is of type subprocess.CalledProcessError, assume docker is installed but service isn't started
         if type(e) == subprocess.CalledProcessError:
             subprocess.call(['service', 'docker', 'start'])
-            images = subprocess.check_output(['docker', 'images']).split('\n')
+            images = subprocess.check_output([b'docker', b'images']).split(b'\n')
 
         elif e.errno == errno.ENOENT:
             # handle file not found error, lets install docker
@@ -507,7 +507,7 @@ if __name__ == '__main__':
     daemon_f = '/etc/docker/daemon.json'
     if not os.path.isfile(daemon_f):
         with open(daemon_f, 'w+') as f:
-            f.write('{ "iptables": true }')
+            f.write('{ "iptables": true, "default-ulimit": "nofile=90000:90000" }')
 
     subprocess.call(['iptables', '-P', 'INPUT', 'ACCEPT'])
     subprocess.call(['iptables', '-P', 'FORWARD', 'ACCEPT'])
