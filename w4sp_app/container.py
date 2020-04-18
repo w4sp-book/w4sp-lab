@@ -64,7 +64,7 @@ class root_ns(object):
                 ret = libc.setns(self.mnt_fd.fileno(), 0)
 
             else:
-                ns_fd = open(self.proc_path + 'net', 'ro')
+                ns_fd = open(self.proc_path + 'net', 'r')
                 ret = libc.setns(ns_fd.fileno(), 0)
                 ns_fd.close()
 
