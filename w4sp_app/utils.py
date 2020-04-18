@@ -13,12 +13,12 @@ def check_dumpcap():
     dumpcap = r('which dumpcap').strip()
     caps = r('getcap $dumpcap')
 
-    if caps == '':
+    if caps == b'':
         print('[*] Error, capabilities not set on dumpcap, setting capabilities')
         subprocess.call(['setcap', 'CAP_NET_RAW+eip CAP_NET_ADMIN+eip', dumpcap])
         return
 
-    if 'cap_net_admin' and 'cap_net_raw' in caps.split('=')[1]:
+    if b'cap_net_admin' and b'cap_net_raw' in caps.split(b'=')[1]:
         print('[*] Caps set correctly on dumpcap')
         return
 
@@ -79,7 +79,7 @@ def r(cmd):
             #insert our new one in its place
             cmd.insert(n,v)
 
-    print cmd
+    print(cmd)
     return subprocess.check_output(cmd)
 
 
@@ -94,7 +94,7 @@ def docker_build(image_path):
     #first we need to build the base image so we can build the rest
     r('docker build -t w4sp/labs:base base')
 
-    for image in os.walk( os.path.join(curdir,'.')).next()[1]:
+    for image in next(os.walk( os.path.join(curdir,'.')))[1]:
 
         #no point in rebuilding the base image
         if image != 'base':
@@ -111,20 +111,20 @@ def docker_clean():
 
     #docker rm -f $(docker ps -aq --filter 'label=w4sp=true')
 
-    out = r('docker ps -aq --filter label=w4sp=true').split('\n')[:-1]
+    out = r('docker ps -aq --filter label=w4sp=true').split(b'\n')[:-1]
     for c_id in out:
         r('docker rm -f $c_id')
 
-    for nic in r('ifconfig -a').split('\n\n')[:-1]:
-        nic = nic.split(' ')[0]
-        if nic != 'docker0' and nic != 'eth0' and nic != 'lo' and 'root' not in nic:
+    for nic in r('ifconfig -a').split(b'\n\n')[:-1]:
+        nic = nic.split(b' ')[0]
+        if nic != b'docker0' and nic != b'eth0' and nic != b'lo' and b'root' not in nic:
             #try to delete the link, if it fails don't worry about it
             try:
                 r('ip link delete $nic')
             except:
                 pass
 
-    for netns in r('ip netns').split('\n')[:-1]:
+    for netns in r('ip netns').split(b'\n')[:-1]:
         r('ip netns delete $netns')
 
     #kill old dhclients
@@ -134,9 +134,9 @@ def docker_clean():
         pass
 
     #rename root nic to eth0
-    for nic in r('ifconfig -a').split('\n\n')[:-1]:
-        nic = nic.split(' ')[0]
-        if 'root' in nic:
+    for nic in r('ifconfig -a').split(b'\n\n')[:-1]:
+        nic = nic.split(b' ')[0]
+        if b'root' in nic:
             try:
                 r('ip link set $nic down')
                 r('ip link set $nic name eth0')

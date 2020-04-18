@@ -1,4 +1,4 @@
-from utils import r, docker_clean
+from w4sp_app.utils import r, docker_clean
 
 import subprocess
 import inspect
@@ -19,7 +19,7 @@ except:
         subprocess.check_call(['pip', 'install', 'netifaces'])
         import netifaces
     except:
-        subprocess.check_call(['apt-get', 'install', 'python-netifaces'])
+        subprocess.check_call(['apt-get', 'install', 'python3-netifaces'])
         import netifaces
 
 
@@ -44,7 +44,7 @@ class root_ns(object):
         self.pid = '1'
         self.proc_path = '/proc/%s/ns/' % self.pid
         
-        self.mnt_fd = open(self.proc_path + 'mnt', 'ro')
+        self.mnt_fd = open(self.proc_path + 'mnt')
         
         
     def register_ns(self, name, image):
@@ -64,7 +64,7 @@ class root_ns(object):
                 ret = libc.setns(self.mnt_fd.fileno(), 0)
 
             else:
-                ns_fd = open(self.proc_path + 'net', 'ro')
+                ns_fd = open(self.proc_path + 'net', 'r')
                 ret = libc.setns(ns_fd.fileno(), 0)
                 ns_fd.close()
 
@@ -222,10 +222,10 @@ class container(root_ns):
         #start the container and record the container id sleeping randomly to try and improve performance at start
         #time.sleep(random.uniform(1,3))
         self.id = r('docker run -id --privileged --name $name --hostname $name --net=none $image').strip()
-        self.pid = r("docker inspect -f '{{.State.Pid}}' $self.id").strip().strip("'")
+        self.pid = r("docker inspect -f '{{.State.Pid}}' $self.id").strip().strip(b"'")
 
         self.proc_path = '/proc/%s/ns/' % self.pid
-        self.mnt_fd = open(self.proc_path + 'mnt', 'ro')
+        self.mnt_fd = open(self.proc_path + 'mnt')
         self.var_run = '/var/run/netns/' + self.name     
 
         if not os.path.exists('/var/run/netns'):

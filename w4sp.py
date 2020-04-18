@@ -20,7 +20,7 @@ def test():
     #    e = ctypes.get_errno()
     #    raise OSError(e, errno.errorcode[e])
 
-    print r('ls -sail /root')
+    print(r, 'ls -sail /root')
 
     r1.exit_ns()
 
