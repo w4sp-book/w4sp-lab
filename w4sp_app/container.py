@@ -225,7 +225,7 @@ class container(root_ns):
         self.pid = r("docker inspect -f '{{.State.Pid}}' $self.id").strip().strip(b"'")
 
         self.proc_path = '/proc/%s/ns/' % self.pid
-        self.mnt_fd = open(self.proc_path + 'mnt', 'ro')
+        self.mnt_fd = open(self.proc_path + 'mnt')
         self.var_run = '/var/run/netns/' + self.name     
 
         if not os.path.exists('/var/run/netns'):
