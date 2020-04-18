@@ -1,4 +1,4 @@
-from utils import r, docker_clean
+from w4sp_app.utils import r, docker_clean
 
 import subprocess
 import inspect
@@ -19,7 +19,7 @@ except:
         subprocess.check_call(['pip', 'install', 'netifaces'])
         import netifaces
     except:
-        subprocess.check_call(['apt-get', 'install', 'python-netifaces'])
+        subprocess.check_call(['apt-get', 'install', 'python3-netifaces'])
         import netifaces
 
 
@@ -44,7 +44,7 @@ class root_ns(object):
         self.pid = '1'
         self.proc_path = '/proc/%s/ns/' % self.pid
         
-        self.mnt_fd = open(self.proc_path + 'mnt', 'ro')
+        self.mnt_fd = open(self.proc_path + 'mnt')
         
         
     def register_ns(self, name, image):

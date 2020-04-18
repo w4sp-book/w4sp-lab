@@ -1,7 +1,7 @@
 import time
 import random
-from container import *
-from utils import *
+from w4sp_app.container import *
+from w4sp_app.utils import *
 
 from subprocess import call
 from multiprocessing import Process
@@ -44,7 +44,7 @@ def setup_sw(sw, base_ip, clients):
     sw_ip = base_ip % 2
 
     print('aaaaarrrrgggggssss')
-    print clients
+    print(clients)
 
     #connect each container/docker up with a veth
     for conn in clients:
