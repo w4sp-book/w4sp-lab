@@ -8,16 +8,16 @@
         self.mnt_fd = open(self.proc_path + 'mnt')
         self.var_run = '/var/run/netns/' + self.name     
 
-###### IN W4SP_WEBAPP.PY AT LINE 224 CHANGE ######
+###### IN W4SP_WEBAPP.PY AT LINE 213 CHANGE ######
 
+@app.route('/is_ips')
+def is_ips():
+    """quick check to see if suricata is running"""
 
-@app.route('/ips')
-def ips():
-    """this starts suricata if it isn't running"""
-
-    if psef('suricata'):
+    if psef(b'suricata'):
+        return 'ok',200
+    else:
         return 'error',404
 
-    #if sw2 isn't even up then we need to bail
-    if not w4sp.c('sw2'):
-        return 'error',404
+
+
