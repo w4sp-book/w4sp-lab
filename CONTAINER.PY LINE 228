@@ -1,0 +1,12 @@
+
+   
+        self.pid = r("docker inspect -f '{{.State.Pid}}' $self.id").strip().strip(b"'")
+        self.pid = self.pid.decode("utf-8")
+        self.proc_path = '/proc/%s/ns/' % self.pid
+
+
+
+
+
+
+
